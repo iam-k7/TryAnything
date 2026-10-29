@@ -136,6 +136,12 @@ describe("photo try-on client", () => {
     ctrl.abort();
     await expect(p).rejects.toThrow("aborted");
   });
+  it("turns a network failure into a readable message", async () => {
+    globalThis.fetch = (async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof fetch;
+    await expect(requestPhotoTryOn(new Blob(["p"]), { product }, new AbortController().signal)).rejects.toThrow("Can't reach the TryAnything server");
+  });
   it("falls back to a generic message for non-JSON errors", async () => {
     expect(await apiErrorMessage(new Response("oops", { status: 500 }))).toBe("Request failed (500).");
   });

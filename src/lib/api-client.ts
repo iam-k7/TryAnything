@@ -9,6 +9,16 @@ export async function apiErrorMessage(res: Response): Promise<string> {
   return typeof body?.error?.detail === "string" ? `${msg} [dev: ${body.error.detail.slice(0, 200)}]` : msg;
 }
 
+/** fetch() for our own API. A network failure (server down, offline) becomes a readable message; aborts pass through. */
+export async function fetchApi(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, { cache: "no-store", ...init });
+  } catch (err) {
+    if (err instanceof TypeError) throw new Error("Can't reach the TryAnything server. Check your connection and reload the page.");
+    throw err;
+  }
+}
+
 export type TryOnItem = { product: Product; image?: Blob } | { category: CategoryId; image: Blob };
 
 /** Sends one photo try-on request. Resolves to the result image, or throws an Error with a user-facing message. */
@@ -19,7 +29,7 @@ export async function requestPhotoTryOn(photo: Blob, item: TryOnItem, signal: Ab
   else form.set("category", item.category);
   if (item.image) form.set("item", item.image, "item.jpg");
 
-  const res = await fetch("/api/v1/tryon", { method: "POST", body: form, signal, cache: "no-store" });
+  const res = await fetchApi("/api/v1/tryon", { method: "POST", body: form, signal });
   if (!res.ok) throw new Error(await apiErrorMessage(res));
   const blob = await res.blob();
   if (!blob.type.startsWith("image/")) throw new Error("The preview came back in an unexpected format.");

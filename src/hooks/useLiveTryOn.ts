@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Product } from "@/lib/catalog";
-import { apiErrorMessage } from "@/lib/api-client";
+import { apiErrorMessage, fetchApi } from "@/lib/api-client";
 
 export type LivePhase = "idle" | "starting" | "live";
 type FailStage = "camera" | "token" | "connect";
@@ -106,7 +106,7 @@ export function useLiveTryOn() {
         setStatus("Connecting… this takes a few seconds.");
 
         stage = "token";
-        const res = await fetch("/api/v1/tokens", { method: "POST", cache: "no-store", signal: abort.signal });
+        const res = await fetchApi("/api/v1/tokens", { method: "POST", signal: abort.signal });
         if (!res.ok) throw new Error(await apiErrorMessage(res));
         const token = (await res.json()) as TokenResponse;
         if (!token?.apiKey || !token.model) throw new Error("Incomplete session token.");
