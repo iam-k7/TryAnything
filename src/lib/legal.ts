@@ -1,5 +1,5 @@
 /**
- * Legal documents for Tryanything.
+ * Legal documents for TryAnything.
  *
  * Written to match what the code actually does (see docs/ARCHITECTURE.md and docs/SECURITY.md).
  * If you change data handling (e.g. add accounts, recordings, a database), update these texts.
@@ -17,12 +17,12 @@ const privacy: LegalDoc = {
   slug: "privacy",
   title: "Privacy Policy",
   summary:
-    "Your camera is used only while you are trying clothes on. Tryanything does not record or store your video, does not use cookies, and does not ask for your name or email.",
+    "Your photo or camera video is sent to our AI provider only when you ask for a preview. TryAnything does not store your photos, video or previews, has no accounts, uses no cookies or analytics, and never asks for your name or email.",
   sections: [
     {
       heading: "1. Who we are",
       blocks: [
-        `Tryanything ("we", "us") is a mobile web app that lets you see clothes on yourself in real time using your device camera. For the purposes of India's Digital Personal Data Protection Act, 2023 ("DPDP Act") we are the Data Fiduciary, and for the EU/UK GDPR we are the controller, of the personal data described below. Contact: ${CONTACT_EMAIL}.`,
+        `TryAnything ("we", "us") is a web app that shows an AI preview of clothes and accessories on a photo of you, or live through your device camera. For the purposes of India's Digital Personal Data Protection Act, 2023 ("DPDP Act") we are the Data Fiduciary, and for the EU/UK GDPR we are the controller, of the personal data described below. Contact: ${CONTACT_EMAIL}.`,
       ],
     },
     {
@@ -30,13 +30,12 @@ const privacy: LegalDoc = {
       blocks: [
         {
           list: [
-            "Live camera video. Only after you switch on consent and allow camera access, your video is streamed directly from your browser to our AI provider, Decart, which returns a video of you wearing the selected garment. Purpose: providing the try-on. Basis: your consent. We do not record, save or view your video, and it never passes through our servers.",
-            "Usage events. Anonymous events such as \"session started\", which garment was shown, errors, and which store link you tapped, tagged with a random session ID that is not linked to your identity. Purpose: making the app work better and measuring reliability. Basis: legitimate interests (GDPR) / legitimate use for providing the service you requested (DPDP).",
-            "Optional profile answers. The style (womenswear / menswear / both) and age range you tap in the survey. Purpose: understanding our audience and improving recommendations. Basis: your consent, which you give by answering. The survey can be skipped.",
-            "Technical data. IP address, browser type and request times, processed by us and our hosting provider to deliver the site, prevent abuse (for example, limiting how often try-on sessions can be started) and keep it secure. Basis: legitimate interests / legitimate use.",
+            "Photos (photo mode). When you press \"Try it on\", your browser first shrinks the photo and removes its metadata (such as GPS location), then sends it, together with the item image, to our server. Our server passes them to our AI provider, Decart, and returns the preview to your browser. The images exist only in memory for the duration of that request; we do not save them to disk, a database or logs. Purpose: providing the preview. Basis: your consent.",
+            "Live camera video (live mode). Only after you tick the consent box, press Start and allow camera access, your video is streamed directly from your browser to Decart, which returns a video of you wearing the selected item. It does not pass through our servers and we do not record it. Basis: your consent.",
+            "Technical data. IP address, browser type and request times, processed by our hosting provider in request logs, and by us in memory for about a minute to limit how often previews can be requested. Our own server logs record only outcomes and timings (for example \"preview created in 12 s\"), never images or IP addresses. Basis: legitimate interests / legitimate use.",
           ],
         },
-        "We do not collect your name, email, phone number, location or payment details, and we do not use your data for advertising, profiling, or to train AI models.",
+        "We do not collect your name, email, phone number, location or payment details. There are no accounts, profiles, analytics or advertising trackers, and we do not use your data to train AI models. Photos you pick stay in your browser's memory only until you leave or reload the page.",
       ],
     },
     {
@@ -44,12 +43,12 @@ const privacy: LegalDoc = {
       blocks: [
         {
           list: [
-            "Decart (realtime AI provider): receives your live camera stream and the garment image to generate the try-on video during your session. Its handling of the stream is governed by its own terms and privacy policy at docs.platform.decart.ai.",
-            "Vercel (hosting): serves the website and keeps request logs.",
+            "Decart (AI provider): receives your photo or live camera stream and the item image to generate the preview. How long Decart keeps this data is governed by its own terms and privacy policy at docs.platform.decart.ai; please read them before use.",
+            "Our hosting provider: serves the website and keeps standard request logs (not images).",
             "Authorities, where the law requires it.",
           ],
         },
-        "We do not sell or rent personal data. Store links open third-party websites with their own privacy policies; we do not share your data with them.",
+        "We do not sell or rent personal data.",
       ],
     },
     {
@@ -57,8 +56,8 @@ const privacy: LegalDoc = {
       blocks: [
         {
           list: [
-            "Camera video: not stored by us. Each session is limited to 3 minutes, and ends sooner if you leave the page or switch tabs.",
-            "Usage events and technical logs: up to [30] days, then deleted.",
+            "Photos, camera video and previews: not stored by us. Live sessions are limited to a few minutes, and end sooner if you leave the page or switch tabs.",
+            "Server and hosting logs (no images): up to [30] days, then deleted.",
             "Rate-limit counters: held in memory for about one minute.",
           ],
         },
@@ -67,7 +66,7 @@ const privacy: LegalDoc = {
     {
       heading: "5. Cookies and storage",
       blocks: [
-        "Tryanything does not set cookies and does not use your browser's local storage. Fonts and images are served from our own domain.",
+        "TryAnything does not set cookies and does not use your browser's local storage. Images are served from our own domain and no third-party scripts or fonts are loaded.",
       ],
     },
     {
@@ -82,14 +81,14 @@ const privacy: LegalDoc = {
         "Depending on where you live, you can:",
         {
           list: [
-            "withdraw consent at any time: stop a session, close the tab, or block camera access in your browser settings;",
+            "withdraw consent at any time: cancel a preview, stop a session, close the tab, or block camera access in your browser settings;",
             "ask for access to, correction of, or erasure of personal data we hold about you;",
             "object to or restrict processing, and ask for data portability (GDPR);",
             "nominate another person to exercise your rights in case of death or incapacity (DPDP Act);",
             "complain to a regulator: the Data Protection Board of India, or your local data protection authority in the EU/UK.",
           ],
         },
-        `Because we don't ask who you are, we may need the session ID shown in your request, or other details, to find your data. Email ${CONTACT_EMAIL}; we reply within 30 days.`,
+        `Because we don't store images or know who you are, we usually hold no personal data that we could return or delete. Email ${CONTACT_EMAIL}; we reply within 30 days.`,
       ],
     },
     {
@@ -99,13 +98,13 @@ const privacy: LegalDoc = {
     {
       heading: "9. Age limit",
       blocks: [
-        "Tryanything is only for people aged 18 or over. We do not knowingly process data of children. If you believe a child has used the service, contact us and we will delete any related data.",
+        "TryAnything is only for people aged 18 or over. We do not knowingly process data of children. If you believe a child has used the service, contact us and we will delete any related data.",
       ],
     },
     {
       heading: "10. Security",
       blocks: [
-        "Video travels over encrypted connections (HTTPS / WebRTC). Our permanent AI-provider key stays on our servers; your browser receives only a short-lived token that expires within a minute and caps the session length. No system is perfectly secure, but we limit what we collect so there is little to expose.",
+        "Photos and video travel over encrypted connections (HTTPS / WebRTC). Our permanent AI-provider key stays on our servers; for live mode your browser receives only a short-lived token that expires within a minute and caps the session length. No system is perfectly secure, but we limit what we collect so there is little to expose.",
       ],
     },
     {
@@ -118,19 +117,19 @@ const privacy: LegalDoc = {
 const terms: LegalDoc = {
   slug: "terms",
   title: "Terms of Service",
-  summary: "Use Tryanything for fun and shopping inspiration. The AI preview is an approximation, not a promise of fit or appearance.",
+  summary: "Use TryAnything for fun and shopping inspiration. The AI preview is an approximation, not a promise of fit or appearance.",
   sections: [
     {
       heading: "1. Agreement",
       blocks: [
-        "By turning on the camera in Tryanything you agree to these Terms, our Privacy Policy and our Acceptable Use Policy. If you do not agree, do not use the service.",
+        "By requesting a preview in TryAnything you agree to these Terms, our Privacy Policy and our Acceptable Use Policy. If you do not agree, do not use the service.",
       ],
     },
     { heading: "2. Eligibility", blocks: ["You must be at least 18 years old and able to enter into a binding contract."] },
     {
       heading: "3. The service",
       blocks: [
-        "Tryanything shows an AI-generated, real-time preview of you wearing sample garments, and links to third-party stores. The service is free, offered \"as is\", and may change, be limited (for example, session length or how often you can start one) or stop at any time.",
+        "TryAnything shows an AI-generated preview of you wearing sample or uploaded clothes and accessories, either on a photo or live through your camera. The service is free, offered \"as is\", and may change, be limited (for example, session length or how often you can start one) or stop at any time.",
       ],
     },
     {
@@ -139,7 +138,7 @@ const terms: LegalDoc = {
         {
           list: [
             "Previews are generated by an AI model and may be inaccurate, including in colour, size, fit, body shape or appearance. Do not rely on them for purchase, sizing, medical or other decisions.",
-            "Previews are produced live and are not saved by us. If you capture them yourself (for example with a screenshot), you are responsible for how you use and share them.",
+            "Previews are not saved by us. If you capture them yourself (for example with a screenshot), you are responsible for how you use and share them.",
           ],
         },
       ],
@@ -149,15 +148,15 @@ const terms: LegalDoc = {
       blocks: ["You must follow the Acceptable Use Policy. We may end sessions or block access if you break it or if we reasonably suspect abuse."],
     },
     {
-      heading: "6. Third-party stores and services",
+      heading: "6. Third-party services",
       blocks: [
-        "Store links lead to websites we do not own or control. Purchases are between you and that store. The AI preview is provided by Decart, and your use of it is also subject to Decart's terms and acceptable use policy at docs.platform.decart.ai.",
+        "The AI preview is provided by Decart, and your use of it is also subject to Decart's terms and acceptable use policy at docs.platform.decart.ai.",
       ],
     },
     {
       heading: "7. Intellectual property",
       blocks: [
-        "The Tryanything name, design and software belong to us or our licensors. Garment images are used under licence. You may not copy, resell or reverse-engineer the service, or access our APIs except through the app.",
+        "The TryAnything name, design and software belong to us or our licensors. Sample item images are used under licence or are our own. Only upload item images you have the right to use. You may not copy, resell or reverse-engineer the service, or access our APIs except through the app.",
       ],
     },
     {
@@ -187,13 +186,13 @@ const aup: LegalDoc = {
     {
       heading: "1. Only you, with consent",
       blocks: [
-        "Use the camera on yourself. Anyone else in the frame must be 18 or over and must have agreed to be included. Never point the camera at someone without their knowledge.",
+        "Use photos of yourself and the camera on yourself. Anyone else in a photo or in the frame must be 18 or over and must have agreed to be included. Never point the camera at someone without their knowledge.",
       ],
     },
     {
       heading: "2. Prohibited content",
       blocks: [
-        "You must not use Tryanything to create, attempt to create, capture or share:",
+        "You must not use TryAnything to create, attempt to create, capture or share:",
         {
           list: [
             "nudity, sexual or sexually suggestive content, or attempts to remove or reduce clothing;",
@@ -209,7 +208,7 @@ const aup: LegalDoc = {
       blocks: [
         {
           list: [
-            "Automating, scripting or scraping the service, or requesting try-on tokens outside the app;",
+            "Automating, scripting or scraping the service, or calling our APIs outside the app;",
             "getting around session limits, rate limits, safety filters or any other protection;",
             "reselling the service or access to it, or using it to build a competing product;",
             "interfering with or overloading the service, or probing it for vulnerabilities without our written permission.",
@@ -219,7 +218,7 @@ const aup: LegalDoc = {
     },
     {
       heading: "4. Our AI provider's rules",
-      blocks: ["The live preview is generated by Decart, so its acceptable use policy (docs.platform.decart.ai) also applies to your use."],
+      blocks: ["Previews are generated by Decart, so its acceptable use policy (docs.platform.decart.ai) also applies to your use."],
     },
     {
       heading: "5. Enforcement and reporting",

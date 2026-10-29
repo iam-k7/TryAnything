@@ -7,7 +7,10 @@ export type ApiErrorCode =
   | "not_configured"
   | "upstream_failed"
   | "invalid_body"
-  | "payload_too_large";
+  | "payload_too_large"
+  | "unsupported_media_type"
+  | "busy"
+  | "timeout";
 
 export function apiError(
   status: number,

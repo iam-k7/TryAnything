@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerEnv } from "@/lib/server/env";
 import { logger, errorMessage, redact } from "@/lib/server/logger";
-import { createRateLimiter, clientIp } from "@/lib/server/rate-limit";
-import { resolveAllowedOrigin } from "@/lib/server/origin";
+import { createBillableGuard } from "@/lib/server/guard";
 import { mintClientToken, UpstreamError } from "@/lib/server/decart-token";
 import { apiError } from "@/lib/server/http";
 
@@ -10,35 +9,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Every token is a door to billed GPU time, so this is the tightest limit in the app.
-const limit = createRateLimiter({ limit: 5, windowMs: 60_000 });
+const guard = createBillableGuard("tokens", { perIpPerMinute: 5, globalPerMinute: 30 });
 
 export async function POST(req: Request) {
   const started = Date.now();
   const env = getServerEnv();
-
-  const origin = resolveAllowedOrigin(req.headers, env.appOrigins);
-  if (!origin) {
-    logger.warn("tokens.forbidden_origin", { origin: req.headers.get("origin") });
-    return apiError(403, "forbidden_origin", "Not allowed.");
-  }
-
-  const ip = clientIp(req.headers);
-  const rl = limit(ip);
-  if (!rl.ok) {
-    logger.warn("tokens.rate_limited", { ip });
-    return apiError(429, "rate_limited", "Too many attempts. Please wait a moment.", {
-      "Retry-After": String(rl.retryAfterSeconds),
-    });
-  }
-
-  if (!env.decartApiKey) {
-    logger.error("tokens.not_configured");
-    return apiError(503, "not_configured", "Try-on is not available right now.");
-  }
+  const gate = guard(req, env);
+  if (gate instanceof Response) return gate;
 
   try {
     // Scope the token to the one origin that asked for it (least privilege; Decart checks the WebSocket Origin).
-    const token = await mintClientToken(env, origin);
+    const token = await mintClientToken(env, gate.origin);
     logger.info("tokens.minted", { model: token.model, ttl_s: env.tokenTtlSeconds, ms: Date.now() - started });
     return NextResponse.json(token, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {

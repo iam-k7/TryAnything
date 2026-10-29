@@ -12,25 +12,24 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@decartai/sdk": "latest",
-    "canvas-confetti": "^1.9.3",
-    "next": "15.1.0",
+    "@decartai/sdk": "0.2.14",
+    "next": "15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/canvas-confetti": "^1.6.4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^2.1.8"
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   },
   "engines": {
-    "node": ">=18.18"
+    "node": ">=20.19"
   }
 }

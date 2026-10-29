@@ -1,5 +1,5 @@
-import { Onboarding } from "@/components/onboarding/Onboarding";
+import { TryOn } from "@/components/TryOn";
 
 export default function Page() {
-  return <Onboarding />;
+  return <TryOn />;
 }

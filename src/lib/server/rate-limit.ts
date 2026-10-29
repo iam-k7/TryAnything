@@ -3,9 +3,9 @@ import "server-only";
 /**
  * Fixed-window in-memory rate limiter.
  *
- * MVP SIMPLIFICATION: state lives in one server instance, so on serverless each
- * instance has its own counters. Acceptable for a low-traffic beta; replace with
- * Upstash Redis (`@upstash/ratelimit`) before public launch. The interface stays the same.
+ * shortcut: state lives in one server instance, so on serverless each instance has its own
+ * counters (limits multiply by instance count). Replace with a shared store such as Upstash Redis
+ * (`@upstash/ratelimit`) before public launch; keep this call signature.
  */
 export type RateLimitResult = { ok: boolean; remaining: number; retryAfterSeconds: number };
 
@@ -34,9 +34,14 @@ export function createRateLimiter(opts: { limit: number; windowMs: number; maxKe
   };
 }
 
-/** Best-effort client IP. On Vercel `x-forwarded-for` is set by the platform edge. */
+/**
+ * Best-effort client IP for rate limiting. Uses the right-most x-forwarded-for entry: the one added by
+ * the nearest proxy (on Vercel the header holds only the platform-verified client IP). Entries further
+ * left are client-supplied and trivially spoofed. Without a proxy every value here is spoofable, which is
+ * why billable routes also have a global cap.
+ */
 export function clientIp(headers: Headers): string {
   const fwd = headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
-  return headers.get("x-real-ip") ?? "unknown";
+  const last = fwd?.split(",").pop()?.trim();
+  return last || headers.get("x-real-ip") || "unknown";
 }

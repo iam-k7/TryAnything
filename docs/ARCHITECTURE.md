@@ -1,68 +1,59 @@
 # Architecture
 
-Tryanything is a mobile-first Next.js app that recreates the Anywear onboarding try-on
-flow (see `REVERSE_ENGINEERING.md`). The MVP is a modular monolith: one Next.js app,
-two server routes, no database.
+One Next.js app, two server routes, no database.
 
 ```
-Browser (mobile Safari / Chrome)
- ├─ Onboarding UI (React client components, reducer-driven steps)
- ├─ useTryOnSession  ── getUserMedia ──► camera MediaStream
- │        │  POST /api/v1/tokens          (same-origin, rate limited)
- │        ▼
- │   short-lived client token {apiKey, expiresAt, model, maxSessionSeconds}
- │        │  @decartai/sdk realtime.connect(stream, {model})  ── WebRTC ──►  Decart lucy-vton
- │        │  rtClient.setImage(garmentBlob, {prompt})                         (GPU, Decart cloud)
- │        ◄──────────────── remote MediaStream (try-on video) ─────────────────
- └─ analytics  ── sendBeacon POST /api/v1/events ──► structured JSON logs (stdout)
+Browser
+ ├─ TryOn page (Catalog + preview + controls)
+ ├─ Photo mode: prepareImage() → ≤1280px JPEG, EXIF stripped
+ │     POST /api/v1/tryon (multipart) ──► server ──► Decart lucy-image-2 (process API) ──► image ──► browser
+ └─ Live mode: getUserMedia (after consent + Start)
+       POST /api/v1/tokens ──► short-lived client token
+       @decartai/sdk realtime.connect(stream) ── WebRTC ──► Decart lucy-vton ──► remote video
+       setImage(garment, { prompt }) to switch items
 
-Next.js server (Vercel / Node)
- ├─ /api/v1/tokens  : origin check → rate limit → mint token with DECART_API_KEY (server-only)
- └─ /api/v1/events  : rate limit → zod schema (enum of event names, bounded props) → logger
+Server (Node runtime)
+ ├─ guard: Origin in APP_ORIGINS → per-IP limit → global limit → key configured
+ ├─ /api/v1/tokens : guard (5/min/IP, 30/min total) → mint token (origin-scoped, session-capped)
+ └─ /api/v1/tryon  : guard (6/min/IP, 30/min total) → size + magic-byte checks → fixed prompt
+                     → max 4 in flight → 60 s timeout → re-typed image, Cache-Control: no-store
 ```
 
-## Components
+## API
 
-| Path | Responsibility |
+All errors: `{ "error": { "code": string, "message": string } }`, `Cache-Control: no-store`.
+
+### `POST /api/v1/tokens`
+No body. `200` → `{ apiKey, expiresAt, model, maxSessionSeconds }`.
+
+### `POST /api/v1/tryon`
+`multipart/form-data`, `Content-Length` required, body ≤ ~4.1 MB:
+
+| Field | |
 |---|---|
-| `src/app/page.tsx` | Renders `<Onboarding/>` |
-| `src/components/onboarding/Onboarding.tsx` | Step orchestration (reducer in `lib/onboarding.ts`) |
-| `ConsentModal`, `DressingRoom`, `GarmentGrid`, `Survey`, `ShopStep`, `TimeoutModal` | One screen each, presentational + local UI timers |
-| `src/hooks/useTryOnSession.ts` | Camera, token, SDK connect, garment apply, rotation timers, teardown |
-| `src/lib/garments.ts` | Garment catalog (image + prompt) |
-| `src/lib/events.ts` | Shared zod schema for analytics events |
-| `src/lib/analytics.ts` | Client `track()` (beacon, never throws) |
-| `src/lib/server/*` | env validation, logger (redacting), rate limiter, origin check, Decart token minting |
+| `photo` | required; JPEG/PNG/WebP by magic bytes; ≤ 2 MB |
+| `productId` | a catalog id, **or** |
+| `category` | a category id, for an uploaded item (then `item` is required) |
+| `item` | optional item image (same rules as `photo`); used as the reference for photographed products and uploads |
 
-## Session lifecycle (`useTryOnSession`)
+`200` → the image (`image/jpeg|png|webp`).
 
-```
-idle ─start()─► camera ─granted─► token ─ok─► connecting ─remote stream─► live
-  ▲                │fail              │fail          │fail                   │ 4×15 s / 180 s cap / tab hidden / error
-  └──── error{stage, message} ◄───────┴──────────────┴───────────────────────┴──► ended{reason}
-```
+| Status | code | When |
+|---|---|---|
+| 400 | `invalid_body` | missing photo/item, unknown product or category, malformed form |
+| 403 | `forbidden_origin` | Origin/Referer not allowed |
+| 411 | `invalid_body` | no `Content-Length` |
+| 413 | `payload_too_large` | body or an image too large |
+| 415 | `unsupported_media_type` | not JPEG/PNG/WebP |
+| 429 | `rate_limited` | per-IP or global limit (`Retry-After`) |
+| 502 | `upstream_failed` | provider error or non-image response |
+| 503 | `not_configured` / `busy` | no key / 4 requests already in flight |
+| 504 | `timeout` | provider took > 60 s |
 
-Every exit path runs one idempotent `teardown()`: stops camera tracks, disconnects the
-realtime client, clears all timers. `stage` decides the user-facing message
-(only `camera` blames the user's permissions).
+## Client lifecycle
 
-## Data
-
-No database in the MVP. Nothing personal is persisted server-side except analytics
-log lines (survey answers are coarse: gender bucket + age range). The camera stream
-goes browser → Decart over WebRTC and never touches our server.
-
-## Path to production
-
-| Phase | Add |
-|---|---|
-| Beta | Upstash/Redis rate limiter (shared across instances); Postgres `events` table (Supabase) instead of stdout; Sentry |
-| Prod | Seat queue (Redis sorted set + heartbeat) to protect Decart concurrency limits; per-user quotas + auth (Supabase Auth) |
-| Scale | Billing (Stripe) for paid sessions; moderation (Decart content flags) ; referral share links (object storage) |
-
-## Cost model
-
-Decart bills realtime GPU time per second of session. The cost levers are all
-server-controlled: `maxSessionSeconds` on the token (default 180 s), token TTL (60 s),
-rate limit on token minting (5/min/IP), and the client's 60 s auto-rotation that
-ends the demo session. Check current per-second pricing on platform.decart.ai before launch.
+- `useLiveTryOn`: `idle → starting → live`. One idempotent `stop()` stops camera tracks, aborts a pending token
+  request, disconnects the SDK client and clears the timer. It runs on Stop, mode switch, timer end, provider
+  disconnect, tab hidden, `pagehide` and unmount. An epoch counter makes late promises from an old session no-ops.
+- `usePhotoTryOn`: each run gets its own `AbortController`; a newer run or Cancel aborts the old one, and only the
+  current controller may write state. Object URLs are created and revoked by `useObjectUrl`.
